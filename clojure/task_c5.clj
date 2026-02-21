@@ -1,4 +1,4 @@
-(ns tasks.c5)
+(ns task-c5)
 
 (defn make-forks
   [n]

@@ -26,7 +26,7 @@ public class NameResolver {
                     targetId = "AUTO_" + UUID.randomUUID();
                     Person p = new Person();
                     p.id = targetId;
-                    p.firstName = r.value;
+                    p.setFullName(r.value);
                     people.put(targetId, p);
                     nameToId.put(r.value, targetId);
                 }

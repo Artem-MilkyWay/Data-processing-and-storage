@@ -18,4 +18,16 @@ public class Person {
         return (firstName == null ? "" : firstName) + " " +
                 (lastName == null ? "" : lastName).trim();
     }
+
+    public void setFullName(String fullName) {
+        if (fullName == null || fullName.isBlank()) return;
+
+        String[] parts = fullName.trim().split("\\s+", 2);
+
+        this.firstName = parts[0];
+
+        if (parts.length > 1) {
+            this.lastName = parts[1];
+        }
+    }
 }

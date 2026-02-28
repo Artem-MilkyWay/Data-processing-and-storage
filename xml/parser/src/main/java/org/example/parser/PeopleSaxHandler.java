@@ -56,7 +56,7 @@ public class PeopleSaxHandler extends DefaultHandler {
             switch (qName.toLowerCase()) {
                 case "first":
                 case "firstname":
-                    current.firstName = value;
+                    current.setFullName(value);
                     break;
                 case "last":
                 case "lastname":

@@ -42,7 +42,9 @@
       (do
         (Thread/sleep eat-ms)
         (release-forks left right))
-      (recur))))
+      (do
+        (Thread/sleep 5)
+        (recur)))))
 
 (defn philosopher
   [id left right think-ms eat-ms meals]

@@ -1,0 +1,43 @@
+package org.example.jaxb;
+
+import jakarta.xml.bind.annotation.*;
+import java.util.ArrayList;
+import java.util.List;
+
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(propOrder = {"firstName", "lastName", "gender", "spouses", "parents", "children", "brothers", "sisters"})
+public class PersonJAXB {
+
+    @XmlAttribute(required = true)
+    @XmlID
+    public String id;
+
+    @XmlElement(required = true)
+    public String firstName;
+
+    @XmlElement
+    public String lastName;
+
+    @XmlElement
+    public String gender;
+
+    @XmlElement(name = "spouse")
+    @XmlIDREF
+    public List<PersonJAXB> spouses = new ArrayList<>();
+
+    @XmlElement(name = "parent")
+    @XmlIDREF
+    public List<PersonJAXB> parents = new ArrayList<>();
+
+    @XmlElement(name = "child")
+    @XmlIDREF
+    public List<PersonJAXB> children = new ArrayList<>();
+
+    @XmlElement(name = "brother")
+    @XmlIDREF
+    public List<PersonJAXB> brothers = new ArrayList<>();
+
+    @XmlElement(name = "sister")
+    @XmlIDREF
+    public List<PersonJAXB> sisters = new ArrayList<>();
+}

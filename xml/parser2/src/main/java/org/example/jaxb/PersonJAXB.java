@@ -5,20 +5,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(propOrder = {"firstName", "lastName", "gender", "spouses", "parents", "children", "brothers", "sisters"})
+@XmlType(propOrder = {"spouses", "parents", "children", "brothers", "sisters"})
 public class PersonJAXB {
 
     @XmlAttribute(required = true)
     @XmlID
     public String id;
 
-    @XmlElement(required = true)
+    @XmlAttribute(required = true)
     public String firstName;
 
-    @XmlElement
+    @XmlAttribute
     public String lastName;
 
-    @XmlElement
+    @XmlAttribute(required = true)
     public String gender;
 
     @XmlElement(name = "spouse")

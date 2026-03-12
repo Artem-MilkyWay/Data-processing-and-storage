@@ -17,9 +17,11 @@ public class Converter {
         for (Person p : peopleMap.values()) {
             PersonJAXB pj = new PersonJAXB();
             pj.id = p.id;
-            pj.firstName = (p.firstName == null || p.firstName.isBlank()) ? "Unknown" : p.firstName;
+            // Если имени нет, не подставляем текст "Unknown", а оставляем пустую строку,
+            // чтобы "Unknown" не появлялось как реальное имя человека.
+            pj.firstName = (p.firstName == null || p.firstName.isBlank()) ? "" : p.firstName;
             pj.lastName = p.lastName;
-            pj.gender = p.gender;
+            pj.gender = (p.gender == null || p.gender.isBlank()) ? "unknown" : p.gender;
 
             jaxbMap.put(p.id, pj);
             people.personList.add(pj);

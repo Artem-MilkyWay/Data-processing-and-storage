@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
     <xs:element name="people">
@@ -10,17 +11,20 @@
     </xs:element>
 
     <xs:complexType name="personType">
+
         <xs:sequence>
-            <xs:element name="firstName" type="xs:string"/>
-            <xs:element name="lastName" type="xs:string" minOccurs="0"/>
-            <xs:element name="gender" type="xs:string" minOccurs="0"/>
             <xs:element name="spouse" type="xs:IDREF" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element name="parent" type="xs:IDREF" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element name="child" type="xs:IDREF" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element name="brother" type="xs:IDREF" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element name="sister" type="xs:IDREF" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
+
         <xs:attribute name="id" type="xs:ID" use="required"/>
+        <xs:attribute name="firstName" type="xs:string" use="required"/>
+        <xs:attribute name="lastName" type="xs:string"/>
+        <xs:attribute name="gender" type="xs:string" use="required"/>
+
     </xs:complexType>
 
 </xs:schema>

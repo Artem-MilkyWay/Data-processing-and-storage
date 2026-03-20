@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Flight Booking API
-  description: REST API для поиска рейсов, бронирования и онлайн-регистрации
+  description: REST API for flight search, booking and online check-in
   version: "1.0.0"
 
 servers:
@@ -12,15 +12,7 @@ paths:
   /cities:
     get:
       summary: List available cities
-      description: Returns all available source or destination cities
-      parameters:
-        - name: type
-          in: query
-          required: false
-          description: source - departure cities, destination - arrival cities
-          schema:
-            type: string
-            enum: [source, destination]
+      description: Returns all available cities
       responses:
         '200':
           description: List of cities
@@ -39,15 +31,15 @@ paths:
   /airports:
     get:
       summary: List airports
-      description: Returns available source or destination airports
+      description: Returns all available airports
       parameters:
-        - name: type
+        - name: lang
           in: query
           required: false
-          description: source - departure airports, destination - arrival airports
+          description: Language for airport name (e.g. en, ru). If not supported, English is returned by default
           schema:
             type: string
-            enum: [source, destination]
+            example: en
       responses:
         '200':
           description: List of airports
@@ -88,11 +80,13 @@ paths:
                       type: string
                     airportName:
                       type: string
+        '400':
+          description: City not found
 
   /airports/{airportCode}/schedule/inbound:
     get:
       summary: Inbound schedule
-      description: Flights arriving to the airport
+      description: Flights arriving to the airport (times are in local airport time)
       parameters:
         - name: airportCode
           in: path
@@ -130,7 +124,7 @@ paths:
   /airports/{airportCode}/schedule/outbound:
     get:
       summary: Outbound schedule
-      description: Flights departing from the airport
+      description: Flights departing from the airport (times are in local airport time)
       parameters:
         - name: airportCode
           in: path
@@ -192,12 +186,14 @@ paths:
         - name: bookingClass
           in: query
           required: true
+          description: Travel class
           schema:
             type: string
             enum: [Economy, Comfort, Business]
         - name: maxConnections
           in: query
           required: false
+          description: Maximum number of connections
           schema:
             type: string
             enum: ["0","1","2","3","unbound"]
@@ -234,7 +230,7 @@ paths:
   /bookings:
     post:
       summary: Create booking
-      description: Create booking for selected route
+      description: Creates a new booking for a selected route
       requestBody:
         required: true
         content:
@@ -277,7 +273,7 @@ paths:
   /checkin:
     post:
       summary: Online check-in
-      description: Check-in passenger for a flight
+      description: Performs check-in and returns boarding pass link
       requestBody:
         required: true
         content:
@@ -291,7 +287,7 @@ paths:
                   type: string
       responses:
         '200':
-          description: Check-in confirmation
+          description: Check-in successful
           content:
             application/json:
               schema:

@@ -1,4 +1,14 @@
 -- =========================================
+-- Гистограмма цен
+-- =========================================
+
+SELECT
+    width_bucket(s.price, 0, 100000, 20) AS bucket,
+    COUNT(*) AS count_in_bucket
+FROM bookings.segments s
+GROUP BY bucket
+ORDER BY bucket;
+-- =========================================
 -- 1. Анализ цен по сегментам
 -- =========================================
 
@@ -15,16 +25,24 @@ GROUP BY s.flight_id, s.fare_conditions;
 -- 2. Восстановление цен с учетом маршрута
 -- =========================================
 
+
 SELECT
     r.departure_airport,
     r.arrival_airport,
     s.fare_conditions,
     EXTRACT(DOW FROM f.scheduled_departure) AS day_of_week,
+
     COUNT(*) AS bookings_count,
-    AVG(s.price) AS avg_price
+    AVG(s.price) AS avg_price,
+
+    PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY s.price) AS p50,
+    PERCENTILE_CONT(0.9) WITHIN GROUP (ORDER BY s.price) AS p90,
+    PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY s.price) AS p95
+
 FROM bookings.segments s
 JOIN bookings.flights f ON s.flight_id = f.flight_id
 JOIN bookings.routes r ON f.route_no = r.route_no
+
 GROUP BY
     r.departure_airport,
     r.arrival_airport,
@@ -38,17 +56,26 @@ GROUP BY
 
 DROP TABLE IF EXISTS pricing_rules;
 
+DROP TABLE IF EXISTS pricing_rules;
+
 CREATE TABLE pricing_rules AS
 SELECT
     r.departure_airport,
     r.arrival_airport,
     s.fare_conditions,
     EXTRACT(DOW FROM f.scheduled_departure) AS day_of_week,
+
     COUNT(*) AS demand,
-    AVG(s.price) AS base_price
+
+    PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY s.price) AS base_price,
+
+    PERCENTILE_CONT(0.9) WITHIN GROUP (ORDER BY s.price) AS p90,
+    PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY s.price) AS p95
+
 FROM bookings.segments s
 JOIN bookings.flights f ON s.flight_id = f.flight_id
 JOIN bookings.routes r ON f.route_no = r.route_no
+
 GROUP BY
     r.departure_airport,
     r.arrival_airport,
@@ -87,14 +114,19 @@ FROM pricing_rules;
 -- =========================================
 -- 6. Применение к будущим рейсам
 -- =========================================
-
 SELECT
     f.flight_id,
     r.departure_airport,
     r.arrival_airport,
     f.scheduled_departure,
     pr.fare_conditions,
-    pr.base_price
+    pr.base_price,
+    pr.demand,
+    CASE
+        WHEN pr.demand > 100 THEN pr.base_price * 1.2
+        WHEN pr.demand > 50 THEN pr.base_price * 1.1
+        ELSE pr.base_price
+    END AS predicted_price
 FROM bookings.flights f
 JOIN bookings.routes r ON f.route_no = r.route_no
 JOIN pricing_rules pr

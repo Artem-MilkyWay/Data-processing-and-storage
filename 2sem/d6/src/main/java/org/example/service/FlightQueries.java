@@ -121,8 +121,6 @@ public class FlightQueries {
         if (fromAirports.isEmpty()) throw new IllegalArgumentException("Unknown from point: " + from);
         if (toAirports.isEmpty()) throw new IllegalArgumentException("Unknown to point: " + to);
 
-        // Preload candidate flights for that date (UTC range by scheduled_departure).
-        // We'll do routing in memory to keep implementation readable.
         var flights = db.jdbc().query(
                 """
                 select
@@ -157,7 +155,6 @@ public class FlightQueries {
             dfsRoutes(byFrom, toAirports, start, maxDepth, new ArrayList<>(), new HashSet<>(), out, bookingClass);
         }
 
-        // De-dup by flight sequence.
         var seen = new HashSet<String>();
         var uniq = new ArrayList<RouteDto>();
         for (var r : out) {
@@ -208,13 +205,13 @@ public class FlightQueries {
     }
 
     private int parseMaxLegs(String maxConnectionsRaw) {
-        if (maxConnectionsRaw == null || maxConnectionsRaw.isBlank()) return 4; // default: allow up to 3 connections => 4 legs
+        if (maxConnectionsRaw == null || maxConnectionsRaw.isBlank()) return 4;
         return switch (maxConnectionsRaw) {
             case "0" -> 1;
             case "1" -> 2;
             case "2" -> 3;
             case "3" -> 4;
-            case "unbound" -> 6; // safety cap
+            case "unbound" -> 6;
             default -> throw new IllegalArgumentException("maxConnections must be one of 0,1,2,3,unbound");
         };
     }
@@ -246,7 +243,6 @@ public class FlightQueries {
     }
 
     private String dowName(Integer pgDow) {
-        // Our data stores "days_of_week integer[]". Assume 0=Sun..6=Sat (Postgres extract(dow)).
         if (pgDow == null) return "UNKNOWN";
         return switch (pgDow) {
             case 0 -> "Sunday";

@@ -26,6 +26,11 @@ public class BookingService {
     public BookingCreateResponse createBooking(BookingCreateRequest req) {
         BookingClass bookingClass = BookingClass.parse(req.bookingClass);
 
+        for (String flightNo : req.route) {
+            int flightId = parseFlightId(flightNo);
+            ensureSeatsAvailable(flightId, bookingClass.name());
+        }
+
         String bookRef = tryCreateBookingRow();
         String ticketNo = tryCreateTicketRow(bookRef, req);
 
@@ -65,7 +70,6 @@ public class BookingService {
         );
         if (ticketNo == null) throw new IllegalArgumentException("Booking/flight not found");
 
-        // Find fare class for that segment (seat pool).
         String fare = jdbc.query(
                 "select fare_conditions from bookings.segments where ticket_no = ? and flight_id = ? limit 1",
                 (rs) -> rs.next() ? rs.getString(1) : null,
@@ -124,8 +128,7 @@ public class BookingService {
                         ticketNo,
                         bookRef,
                         req.passenger.email,
-                        req.passenger.firstName + " " + req.passenger.lastName,
-                        true
+                        req.passenger.firstName + " " + req.passenger.lastName
                 );
                 return ticketNo;
             } catch (DuplicateKeyException ignored) {
@@ -161,7 +164,6 @@ public class BookingService {
     }
 
     private String pickFreeSeat(int flightId, String fare) {
-        // Get airplane_code via route for this flight (from timetable view).
         String airplane = jdbc.query(
                 "select airplane_code from bookings.timetable where flight_id = ?",
                 (rs) -> rs.next() ? rs.getString(1) : null,
@@ -185,8 +187,25 @@ public class BookingService {
                 (rs, i) -> rs.getString(1),
                 airplane, fare, flightId
         );
-        if (seats.isEmpty()) throw new IllegalArgumentException("No free seats left");
-        return seats.get(0);
+        if (!seats.isEmpty()) return seats.get(0);
+
+        List<String> anySeats = jdbc.query(
+                """
+                select s.seat_no
+                from bookings.seats s
+                where s.airplane_code = ?
+                  and not exists (
+                    select 1 from bookings.boarding_passes bp
+                    where bp.flight_id = ? and bp.seat_no = s.seat_no
+                  )
+                order by s.fare_conditions, s.seat_no
+                limit 1
+                """,
+                (rs, i) -> rs.getString(1),
+                airplane, flightId
+        );
+        if (anySeats.isEmpty()) throw new IllegalArgumentException("No free seats left");
+        return anySeats.get(0);
     }
 
     private Integer nextBoardingNo(int flightId) {
@@ -196,6 +215,34 @@ public class BookingService {
                 flightId
         );
         return n == null ? 1 : n;
+    }
+
+    private void ensureSeatsAvailable(int flightId, String fare) {
+        String airplane = jdbc.query(
+                "select airplane_code from bookings.timetable where flight_id = ?",
+                (rs) -> rs.next() ? rs.getString(1) : null,
+                flightId
+        );
+        if (airplane == null) throw new IllegalArgumentException("Flight not found: " + flightId);
+
+        Integer free = jdbc.queryForObject(
+                """
+                select count(*)
+                from bookings.seats s
+                where s.airplane_code = ?
+                  and s.fare_conditions = ?
+                  and not exists (
+                    select 1 from bookings.boarding_passes bp
+                    where bp.flight_id = ? and bp.seat_no = s.seat_no
+                  )
+                """,
+                Integer.class,
+                airplane, fare, flightId
+        );
+
+        if (free == null || free <= 0) {
+            throw new IllegalArgumentException("No free seats left");
+        }
     }
 }
 

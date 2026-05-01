@@ -14,7 +14,6 @@ public class PointResolver {
     }
 
     public List<String> resolveAirportCodes(String point) {
-        // If it's an existing airport code (IATA), treat as airport.
         Integer count = db.jdbc().queryForObject(
                 "select count(*) from bookings.airports_data where airport_code = ?",
                 Integer.class,
@@ -24,8 +23,6 @@ public class PointResolver {
             return List.of(point);
         }
 
-        // Otherwise treat as city "code" == city name in requested language.
-        // We use both EN and RU to be forgiving.
         return db.jdbc().query(
                 """
                 select airport_code

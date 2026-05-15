@@ -9,28 +9,34 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.List;
 
-public class BookingCreateRequest {
-    @Valid
-    @NotNull
-    public Passenger passenger;
+public record BookingCreateRequest(
 
-    @NotEmpty
-    public List<@NotBlank String> route;
+        @Valid
+        @NotNull
+        Passenger passenger,
 
-    @NotBlank
-    public String bookingClass;
+        @NotEmpty
+        List<@NotBlank String> route,
 
-    @NotNull
-    public LocalDate departureDate;
-
-    public static class Passenger {
         @NotBlank
-        public String firstName;
-        @NotBlank
-        public String lastName;
-        @Email
-        @NotBlank
-        public String email;
-    }
+        String bookingClass,
+
+        @NotNull
+        LocalDate departureDate
+
+) {
+
+    public record Passenger(
+
+            @NotBlank
+            String firstName,
+
+            @NotBlank
+            String lastName,
+
+            @Email
+            @NotBlank
+            String email
+
+    ) {}
 }
-

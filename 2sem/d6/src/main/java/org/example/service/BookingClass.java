@@ -6,10 +6,16 @@ public enum BookingClass {
     Business;
 
     public static BookingClass parse(String raw) {
-        for (var v : values()) {
-            if (v.name().equalsIgnoreCase(raw)) return v;
+        try {
+            return BookingClass.valueOf(
+                    raw.substring(0, 1).toUpperCase() +
+                            raw.substring(1).toLowerCase()
+            );
+        } catch (Exception e) {
+            throw new IllegalArgumentException(
+                    "bookingClass must be one of Economy, Comfort, Business"
+            );
         }
-        throw new IllegalArgumentException("bookingClass must be one of Economy, Comfort, Business");
     }
 }
 
